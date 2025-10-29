@@ -1,0 +1,23 @@
+# CRÍTICO: SECRETO DE SEGURIDAD (NO SUBIR NINGUNA CLAVE)
+.env
+*.env
+*.env.*
+*.secret
+
+# CRÍTICO: DIRECTORIOS DE INSTALACIÓN (ARCHIVOS GRANDES)
+# Dependencias de Node.js (Servidor y Cliente)
+node_modules/
+/client/node_modules
+/server/node_modules
+
+# CACHÉ Y COMPILACIÓN (IGNORAR EN TODOS LOS ENTORNOS)
+/client/build     # Compilación final de la Extensión (recreada por npm)
+/server/dist      # Distribuciones de servidor
+/server/.venv     # Entorno virtual de Python
+/client/coverage
+/server/__pycache__
+
+# ARCHIVOS DE SISTEMA Y LOGS
+npm-debug.log*
+.DS_Store
+*.log

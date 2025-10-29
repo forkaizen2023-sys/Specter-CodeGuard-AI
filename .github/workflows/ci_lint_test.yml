@@ -1,0 +1,55 @@
+# Archivo: .github/workflows/ci_lint_test.yml
+name: CI Code Quality & Hybrid Security Tests
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  build_and_test:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+
+    # --- 1. CONFIGURACIÓN E INSTALACIÓN DE PYTHON (SERVIDOR) ---
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.11'
+        cache: 'pip'
+        cache-dependency-path: 'server/requirements.txt'
+
+    - name: Install Server Dependencies (Flask, Gemini SDK, Gunicorn)
+      run: pip install -r server/requirements.txt
+      working-directory: ./server
+      
+    # --- 2. PRUEBAS DE SEGURIDAD HÍBRIDA (SPECTER-VALIDATOR) ---
+    # CRÍTICO: El validador se ejecuta después de instalar 'requests' (en requirements.txt)
+    # y antes de las pruebas unitarias.
+    - name: Run Hybrid Security Validation (Specter-Validator) 🛡️
+      # NOTA: Debes pasar el ENDPOINT real aquí o como un secreto de GitHub (Recomendado)
+      # Este paso verifica 400, 403 y 200 OK en el Backend ya desplegado.
+      run: python specter_validator.py
+      working-directory: ./scripts 
+
+    - name: Run Server Unit Tests (CVSS & Logic)
+      # Ejecuta pruebas unitarias para la lógica CVSS y la integración de Gemini API
+      run: python -m unittest discover -s src/ -p 'test_*.py' 
+      working-directory: ./server
+      
+    # --- 3. CONFIGURACIÓN E INSTALACIÓN DE NODE.JS (CLIENTE) ---
+    - name: Set up Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+
+    - name: Install Client Dependencies
+      run: npm install
+      working-directory: ./client
+
+    - name: Run Client Lint & Tests
+      # Ejecuta linter y pruebas de unidad/componentes (Ej. pruebas de NanoIntegrator.js)
+      run: npm run lint && npm run test
+      working-directory: ./client

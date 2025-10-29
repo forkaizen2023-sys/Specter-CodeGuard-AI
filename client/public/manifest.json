@@ -1,0 +1,43 @@
+{
+  "manifest_version": 3,
+  "name": "Specter CodeGuard AI",
+  "version": "1.0",
+  "description": "Hybrid AI Copilot for secure coding, using Gemini Nano and Specter Cloud Auditing.",
+  "icons": {
+    "16": "icons/icon16.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  },
+  
+  "action": {
+    "default_popup": "popup.html",
+    "default_icon": "icons/icon48.png"
+  },
+  
+  "content_scripts": [
+    {
+      "matches": ["*://*/*"],
+      "js": ["build/content.js"],
+      "run_at": "document_idle"
+    }
+  ],
+  
+  "permissions": [
+    "activeTab",
+    "scripting",
+    "storage",
+    
+    "ai"
+  ],
+  
+  "host_permissions": [
+    // CRÍTICO: Permite que la extensión se conecte al backend de Cloud Run
+    // REEMPLAZAR con tu URL de Cloud Run REAL, incluyendo el protocolo HTTPS.
+    "https://specter-engine-xxxx-uc.a.run.app/*" 
+  ],
+  
+  "content_security_policy": {
+    // Permite llamadas HTTPS solo a nuestro endpoint y a Google Fonts/APIs si se necesitan.
+    "extension_pages": "script-src 'self'; object-src 'self'; connect-src 'self' https://specter-engine-xxxx-uc.a.run.app;"
+  }
+}

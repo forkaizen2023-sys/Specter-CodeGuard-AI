@@ -1,0 +1,4 @@
+Flask
+gunicorn
+google-genai
+requests # <--- CRÍTICO: Asegúrate de que 'requests' esté aquí para el validador
