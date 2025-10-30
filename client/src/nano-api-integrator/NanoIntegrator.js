@@ -1,15 +1,48 @@
 /**
  * Módulo Specter para la Orquestación de IA Integrada (Gemini Nano).
- * Usa las 6 APIs del desafío para análisis de bajo riesgo, privado e instantáneo.
+ * Implementa la Estrategia Híbrida Inteligente (Clasificación para Escalada).
  */
 export const NanoIntegrator = {
 
+    // ----------------------------------------------------------------------
+    // 1. FUNCIÓN CRÍTICA: CLASIFICACIÓN DE RIESGO PRELIMINAR (PROMPT API)
+    // ----------------------------------------------------------------------
     /**
-     * 1. API de Corrección de Pruebas (Proofreader API) 📝
-     * Usada para corregir errores gramaticales y tipográficos en comentarios/cadenas de código.
+     * Clasifica el riesgo del código utilizando la Prompt API para decidir si escalar al backend (Cloud Run).
+     * @param {string} code - Snippet de código a clasificar.
+     * @returns {Promise<{severity: string, message: string}>} 'LOW', 'POSSIBLE', o 'ERROR' riesgo.
      */
+    classifyRiskPreliminarily: async (code) => {
+        if (!navigator.prompt) return { severity: "ERROR", message: "Nano API no disponible para clasificación." };
+
+        // Prompt de Clasificación Specter: Pedimos un output binario y estricto.
+        const classificationPrompt = 
+            "Classify the security risk of this code. Output ONLY the word 'LOW' if the code is clean (no DB, no network, no eval) or 'POSSIBLE' if it contains variables, DB access, or functions that need deep review.";
+
+        try {
+            const response = await navigator.prompt.prompt({ 
+                text: code, 
+                prompt: classificationPrompt 
+            });
+            
+            // Normalizamos el resultado para un chequeo limpio en App.js
+            const classification = response.text.trim().toUpperCase();
+            
+            return { 
+                severity: classification, 
+                message: `Clasificado: ${classification}`
+            };
+
+        } catch (e) {
+            console.error("Nano Classification Falló:", e);
+            return { severity: "ERROR", message: "Fallo de clasificación Nano." };
+        }
+    },
+
+    // ----------------------------------------------------------------------
+    // 2. FUNCIÓN DE CUMPLIMIENTO: Proofreader API 📝
+    // ----------------------------------------------------------------------
     proofreadComments: async (text) => {
-        // Asume que la API está disponible en navigator.proofreader
         if (!navigator.proofreader) return { status: 'ERROR', text: text };
         
         try {
@@ -21,10 +54,9 @@ export const NanoIntegrator = {
         }
     },
 
-    /**
-     * 2. API de Traductor (Translator API) 🌐
-     * Usada para traducir mensajes de error de la API externa o comentarios a un idioma preferido.
-     */
+    // ----------------------------------------------------------------------
+    // 3. FUNCIÓN DE CUMPLIMIENTO: Translator API 🌐
+    // ----------------------------------------------------------------------
     translateError: async (text, targetLang = 'en') => {
         if (!navigator.translator) return text;
         try {
@@ -36,14 +68,13 @@ export const NanoIntegrator = {
         }
     },
 
-    /**
-     * 3. API de Reescribir (Rewriter API) 🖊️
-     * Usada para refactorizar código ineficiente o mejorar la claridad de funciones.
-     */
+    // ----------------------------------------------------------------------
+    // 4. FUNCIÓN DE CUMPLIMIENTO: Rewriter API 🖊️
+    // ----------------------------------------------------------------------
     refactorCode: async (code, instruction) => {
         if (!navigator.rewriter) return code;
         try {
-            // Ejemplo de instrucción Specter: "Refactoriza este código JS para usar async/await y evitar callbacks."
+            // Ejemplo de instrucción Specter: "Refactoriza este código JS para usar async/await."
             const response = await navigator.rewriter.rewrite({ text: code, prompt: instruction });
             return response.text;
         } catch (e) {
@@ -52,14 +83,12 @@ export const NanoIntegrator = {
         }
     },
     
-    /**
-     * 4. API de Escritor (Writer API) ✏️
-     * Usada para generar documentación rápida (docstrings o JSDoc) para funciones.
-     */
+    // ----------------------------------------------------------------------
+    // 5. FUNCIÓN DE CUMPLIMIENTO: Writer API ✏️
+    // ----------------------------------------------------------------------
     generateDocstring: async (code) => {
         if (!navigator.writer) return '/* [Docstring no disponible] */\n' + code;
         try {
-            // Prompt para generar la documentación
             const prompt = "Genera un docstring JSDoc completo para la siguiente función JavaScript.";
             const response = await navigator.writer.write({ prompt, context: code });
             return response.text + '\n' + code;
@@ -69,10 +98,9 @@ export const NanoIntegrator = {
         }
     },
     
-    /**
-     * 5. API de Resumen (Summarizer API) 📄
-     * Usada para resumir el propósito de bloques de código grandes o dependencias.
-     */
+    // ----------------------------------------------------------------------
+    // 6. FUNCIÓN DE CUMPLIMIENTO: Summarizer API 📄
+    // ----------------------------------------------------------------------
     summarizeFunction: async (code) => {
         if (!navigator.summarizer) return "Propósito no resumible.";
         try {
@@ -83,29 +111,7 @@ export const NanoIntegrator = {
             return "No se pudo resumir el propósito.";
         }
     },
-
-    /**
-     * 6. API de Indicaciones (Prompt API) 💭 (CRÍTICA)
-     * Usada para el Análisis de Seguridad de Bajo Riesgo con output estructurado.
-     */
-    analyzeLowRiskSecurity: async (code) => {
-        if (!navigator.prompt) return { severity: 'NONE', message: 'Nano API no disponible para análisis.' };
-
-        // Prompt de Ingeniería Specter: Búsqueda de patrones de seguridad sencillos (ej. XSS DOM)
-        const securityPrompt = "Busca patrones inseguros (como el uso directo de location.hash o document.write sin sanitizar). Devuelve un JSON estructurado con 'vulnerability' y 'severity' (Low/None).";
-
-        try {
-            // Usamos la Prompt API para forzar un resultado JSON estructurado, ideal para la IA local.
-            const response = await navigator.prompt.prompt({ 
-                text: code, 
-                prompt: securityPrompt,
-                outputFormat: 'JSON' 
-            });
-            // CRÍTICO: Aseguramos que la respuesta del Nano sea parseada correctamente
-            return JSON.parse(response.text); 
-        } catch (e) {
-            console.error("Nano Prompt Falló o JSON es inválido:", e);
-            return { severity: 'ERROR', message: 'Fallo al procesar el análisis de seguridad local.' };
-        }
-    }
+    
+    // NOTA: La función analyzeLowRiskSecurity original fue reemplazada por classifyRiskPreliminarily
+    // para un flujo híbrido más eficiente.
 };

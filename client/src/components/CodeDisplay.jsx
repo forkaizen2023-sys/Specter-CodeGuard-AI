@@ -34,71 +34,108 @@ const CodeDisplay = ({ code, nanoResults, hybridResults }) => {
             paddingBottom: '5px'
         },
         alert: (color) => ({
-            padding: '5px 10px',
-            borderRadius: '3px',
-            backgroundColor: color === 'red' ? '#fee2e2' : color === 'orange' ? '#fff3cd' : color === 'yellow' ? '#fffdeb' : '#d1e7dd',
-            color: color === 'red' ? '#991b1b' : color === 'orange' ? '#924000' : 'black',
+            padding: '4px 8px',
+            borderRadius: '4px',
+            backgroundColor: color,
+            color: color === 'yellow' ? '#333' : 'white',
             fontWeight: 'bold',
-            marginBottom: '10px',
-            borderLeft: `5px solid ${color}`
-        })
+            display: 'inline-block'
+        }),
+        pre: {
+            backgroundColor: '#fff', 
+            border: '1px dashed #ccc', 
+            padding: '10px',
+            whiteSpace: 'pre-wrap', // Asegura el ajuste de línea
+            wordBreak: 'break-word',
+            maxHeight: '200px', // Limitar la altura para prevenir overflow
+            overflowY: 'auto'
+        }
     };
 
-    // --- Lógica de Visualización de Resultados Híbridos (CVSS) ---
-
+    // Renderiza el resultado de la Auditoría Híbrida (Cloud Run)
     const renderHybridAnalysis = () => {
-        if (!hybridResults || !hybridResults.severity) {
-            return null;
+        if (!hybridResults) {
+            return null; // Solo se muestra si el análisis híbrido se ejecutó
         }
-        
-        const color = getSeverityColor(hybridResults.severity);
+
+        // Asumimos que hybridResults incluye 'severity', 'vulnerability', y 'remediation'
+        const severity = hybridResults.severity || 'N/A';
+        const severityColor = getSeverityColor(severity);
 
         return (
             <div style={styles.panel}>
-                <h4 style={{ color: color }}>🛡️ Auditoría Híbrida Specter (Cloud Run)</h4>
-                
-                <div style={styles.alert(color)}>
-                    Riesgo Detectado: **{hybridResults.vulnerability}**
-                </div>
-                
-                <p><strong>Puntuación CVSS:</strong> 
-                    <span style={{ fontWeight: 'bold', color: color }}>{hybridResults.severity}</span>
+                <h3>🛑 Auditoría Híbrida Specter (CVSS)</h3>
+                <p>
+                    Riesgo Detectado: <span style={styles.alert(severityColor)}>{severity}</span>
                 </p>
-                
-                <h5 style={styles.header}>Pasos de Remediación Priorizados:</h5>
-                <pre style={{ whiteSpace: 'pre-wrap', backgroundColor: '#eee', padding: '8px' }}>
-                    {hybridResults.remediation}
+                <h5 style={styles.header}>Vulnerabilidad Principal:</h5>
+                <p>{hybridResults.vulnerability || 'No disponible.'}</p>
+                <h5 style={styles.header}>Guía de Remediación (Guido's Zen):</h5>
+                <pre style={styles.pre}>
+                    {hybridResults.remediation || 'No disponible.'}
                 </pre>
             </div>
         );
     };
 
-    // --- Lógica de Visualización de Resultados Nano (Local) ---
-
+    // Renderiza los resultados locales de Gemini Nano (6 APIs)
     const renderNanoAnalysis = () => {
-        if (!nanoResults) {
-            return <p>No hay resultados de Nano disponibles. Ingrese código para el análisis instantáneo.</p>;
+        if (!code || !nanoResults) {
+            return <p style={{ color: '#666', marginTop: '15px' }}>Ingrese código para el análisis instantáneo.</p>;
         }
         
-        // Asumimos que nanoResults.proofread contiene el texto corregido
+        // Extracción de datos Nano
         const isProofread = nanoResults.proofread?.text !== code;
         const securityStatus = nanoResults.lowSecurity?.severity || 'NONE';
+
+        // Variables de productividad (Las nuevas APIs)
+        const docstring = nanoResults.docstring;
+        const summary = nanoResults.summary;
+        const translation = nanoResults.translation; // Asumimos que la traducción es un campo separado.
+        const refactoredCode = nanoResults.refactored;
 
         return (
             <div style={styles.panel}>
                 <h4>🧠 Análisis Local (Gemini Nano)</h4>
-                <p>Corrección Gramatical/Docs: **{isProofread ? 'PENDIENTE (Cambios sugeridos)' : 'OK'}**</p>
-                <p>Seguridad Rápida: <span style={{ color: getSeverityColor(securityStatus) }}>**{securityStatus}**</span></p>
+                <p>Clasificación de Escalada: <span style={styles.alert(getSeverityColor(securityStatus))}>{securityStatus}</span></p>
+                <p>Corrección de Comentarios (Proofreader): **{isProofread ? 'PENDIENTE (Cambios sugeridos)' : 'OK'}**</p>
 
-                {/* Mostrar código refactorizado si existe */}
-                {nanoResults.refactored && nanoResults.refactored !== code && (
+                {/* --- 1. Refactorización (Rewriter API) --- */}
+                {refactoredCode && refactoredCode !== code && (
                     <>
-                        <h5 style={styles.header}>Refactorización Sugerida (Rewriter API):</h5>
-                        <pre style={{ backgroundColor: '#fff', border: '1px dashed #ccc', padding: '10px' }}>
-                            {nanoResults.refactored}
+                        <h5 style={styles.header}>🖊️ Refactorización Sugerida (Rewriter):</h5>
+                        <pre style={styles.pre}>
+                            {refactoredCode}
                         </pre>
                     </>
                 )}
+
+                {/* --- 2. Documentación (Writer API) --- */}
+                {docstring && (
+                    <>
+                        <h5 style={styles.header}>✏️ Docstring/JSDoc Generado (Writer):</h5>
+                        <pre style={styles.pre}>
+                            {docstring}
+                        </pre>
+                    </>
+                )}
+
+                {/* --- 3. Resumen (Summarizer API) --- */}
+                {summary && (
+                    <>
+                        <h5 style={styles.header}>📄 Propósito de la Función (Summarizer):</h5>
+                        <p>{summary}</p>
+                    </>
+                )}
+                
+                {/* --- 4. Traducción (Translator API) --- */}
+                {translation && (
+                    <>
+                        <h5 style={styles.header}>🌐 Traducción (Translator):</h5>
+                        <p>{translation}</p>
+                    </>
+                )}
+                
             </div>
         );
     };

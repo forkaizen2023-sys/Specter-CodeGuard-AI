@@ -1,4 +1,6 @@
+
 Flask
 gunicorn
 google-genai
-requests # <--- CRÍTICO: Asegúrate de que 'requests' esté aquí para el validador
+requests
+PyJWT # 🛡️ CRÍTICO: Requerido para la validación de tokens JWT en app_main.py
